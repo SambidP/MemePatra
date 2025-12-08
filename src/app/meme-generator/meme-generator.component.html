@@ -1,0 +1,240 @@
+<div class="desktop-container">
+  <!-- Desktop Background Wrapper -->
+
+  <div class="header-bar">MemePatra - Meme Generator</div>
+
+  <div class="main-body">
+    <!-- Left Column: Edit Your Meme -->
+    <div class="win-window panel left-panel">
+      <div class="win-title-bar">
+        <span>Meme Generator</span>
+        <div class="win-controls">
+          <button class="win-btn small-btn" (click)="toggleMinimize('left')">
+            {{ isLeftMinimized ? "□" : "_" }}
+          </button>
+        </div>
+      </div>
+      <div class="window-inner-content" *ngIf="!isLeftMinimized">
+        <!-- Loader -->
+
+        <div class="input-group">
+          <label>Upload Source</label>
+          <app-windows-loader *ngIf="isLoading()"></app-windows-loader>
+          <div
+            *ngIf="!isLoading()"
+            class="file-upload-wrapper win-input-inset"
+            [class.has-file]="file()"
+          >
+            <input
+              type="file"
+              class="file-input"
+              placeholder="Upload file"
+              accept=".pdf,.docx"
+              (change)="onFileSelected($event)"
+              [style.display]="file() ? 'none' : 'block'"
+            />
+            <div *ngIf="file()" class="selected-file-display">
+              <span>{{ file()?.name }}</span>
+              <button class="win-btn small-btn" (click)="removeFile()">
+                X
+              </button>
+            </div>
+          </div>
+        </div>
+
+        <div class="input-group">
+          <label>Context Language</label>
+          <div class="context-switch">
+            <button
+              class="win-btn"
+              [class.active]="contextLanguage() === 'Nepali'"
+              (click)="setContext('Nepali')"
+            >
+              Nepali
+            </button>
+            <button
+              class="win-btn"
+              [class.active]="contextLanguage() === 'English'"
+              (click)="setContext('English')"
+            >
+              English
+            </button>
+          </div>
+        </div>
+
+        <div class="input-group">
+          <div class="label-row">
+            <label>Instructions</label>
+          </div>
+          <textarea
+            placeholder="Enter instructions..."
+            class="instruction-area win-input"
+            (input)="updateInstructions($event)"
+          ></textarea>
+        </div>
+
+        <div class="action-buttons">
+          <button class="win-btn" (click)="onGenerate()">Generate meme</button>
+        </div>
+      </div>
+    </div>
+
+    <!-- Center Column: Preview -->
+    <div class="win-window panel center-panel">
+      <div class="win-title-bar">
+        <span>Meme Preview</span>
+        <div class="win-controls">
+          <button class="win-btn small-btn" (click)="toggleMinimize('center')">
+            {{ isCenterMinimized ? "□" : "_" }}
+          </button>
+        </div>
+      </div>
+      <div
+        class="window-inner-content center-content"
+        *ngIf="!isCenterMinimized"
+      >
+        <!-- Loading State for Generation -->
+        <app-windows-loader *ngIf="isLoading()"></app-windows-loader>
+
+        <!-- Placeholder if no memes yet -->
+        <div
+          class="image-preview-placeholder win-input-inset"
+          *ngIf="!isLoading() && generatedMemes().length === 0"
+        >
+          <div style="text-align: center; padding: 20px">
+            <p>No memes generated yet.</p>
+            <img
+              src="https://i.imgflip.com/30b1gx.jpg"
+              alt="Placeholder"
+              class="preview-img"
+              style="max-width: 200px; margin-top: 10px; opacity: 0.5"
+            />
+          </div>
+        </div>
+
+        <!-- Generated Meme Display -->
+        <div
+          class="generated-meme-display"
+          *ngIf="!isLoading() && generatedMemes().length > 0"
+        >
+          <div class="meme-card">
+            <!-- Image from Backend (Base64 or URL) -->
+            <img
+              [src]="
+                generatedMemes()[currentMemeIndex()].generated_image_url ||
+                'https://placehold.co/600x400?text=Generation+Failed'
+              "
+              class="preview-img"
+              alt="Generated Meme"
+            />
+
+            <!-- Caption Overlay (External Caption) -->
+            <div class="meme-caption">
+              {{ generatedMemes()[currentMemeIndex()].external_caption }}
+            </div>
+
+            <!-- Metadata / Rationale -->
+            <div
+              class="meme-meta"
+              style="
+                background: white;
+                padding: 5px;
+                border: 1px solid gray;
+                margin-top: 10px;
+                font-size: 0.8rem;
+              "
+            >
+              <strong>Style:</strong>
+              {{ generatedMemes()[currentMemeIndex()].style }} <br />
+              <strong>Virality:</strong>
+              {{ generatedMemes()[currentMemeIndex()].virality_score }}/100
+            </div>
+          </div>
+
+          <!-- Navigation Controls -->
+          <div
+            class="carousel-controls"
+            style="
+              margin-top: 10px;
+              display: flex;
+              justify-content: center;
+              gap: 10px;
+            "
+          >
+            <button class="win-btn" (click)="prevMeme()">&lt; Prev</button>
+            <span
+              >{{ currentMemeIndex() + 1 }} /
+              {{ generatedMemes().length }}</span
+            >
+            <button class="win-btn" (click)="nextMeme()">Next &gt;</button>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Right Column: Meme Templates -->
+    <div class="win-window panel right-panel">
+      <div class="win-title-bar">
+        <span>{{
+          activeTab === "trendy" ? "Trendy Memes" : "Your Templates"
+        }}</span>
+        <div class="win-controls">
+          <button class="win-btn small-btn">-</button>
+        </div>
+      </div>
+
+      <div class="window-inner-content">
+        <!-- Tab Toggle -->
+        <div class="context-switch">
+          <button
+            class="win-btn"
+            [class.active]="activeTab === 'trendy'"
+            (click)="setActiveTab('trendy')"
+          >
+            Trendy
+          </button>
+          <button
+            class="win-btn"
+            [class.active]="activeTab === 'custom'"
+            (click)="setActiveTab('custom')"
+          >
+            Your Templates
+          </button>
+        </div>
+
+        <div class="template-actions" *ngIf="activeTab === 'custom'">
+          <label class="win-btn upload-btn">
+            Add Template
+            <input
+              type="file"
+              accept="image/*"
+              (change)="onTemplateUpload($event)"
+              style="display: none"
+            />
+          </label>
+        </div>
+        <div class="meme-list-container win-input-inset">
+          <!-- Trendy Grid -->
+          <div class="template-grid" *ngIf="activeTab === 'trendy'">
+            <div *ngFor="let img of trendyTemplates" class="meme-item">
+              <img [src]="img" alt="Trendy Meme" />
+            </div>
+          </div>
+
+          <!-- Dynamic Grid -->
+          <div class="template-grid" *ngIf="activeTab === 'custom'">
+            <div *ngFor="let tmpl of templates()" class="meme-item">
+              <img [src]="tmpl" alt="Template" />
+            </div>
+            <div
+              *ngIf="templates().length === 0"
+              style="padding: 10px; text-align: center; color: gray"
+            >
+              No uploads yet.
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>

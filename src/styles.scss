@@ -1,0 +1,80 @@
+/* You can add global styles to this file, and also import other style files */
+@import url('https://fonts.googleapis.com/css2?family=VT323&display=swap');
+
+:root {
+  --win-gray: #c0c0c0;
+  --win-blue: #000080;
+  --win-text: #000000;
+  --win-light: #ffffff;
+  --win-shadow: #808080;
+  --win-dark-shadow: #000000;
+  --font-retro: 'VT323', monospace;
+}
+
+html, body {
+    margin: 0;
+    padding: 0;
+    height: 100%;
+    background-color: #008080; /* Classic Teal */
+    font-family: var(--font-retro);
+    font-size: 18px; /* Slightly larger for pixel font readability */
+}
+
+/* Retro Utilities */
+.win-window {
+    background-color: var(--win-gray);
+    box-shadow: 
+        inset 1px 1px var(--win-light), 
+        inset -1px -1px var(--win-dark-shadow),
+        inset 2px 2px var(--win-light), 
+        inset -2px -2px var(--win-shadow);
+    padding: 2px;
+}
+
+.win-title-bar {
+    background: linear-gradient(90deg, var(--win-blue), #1084d0);
+    color: var(--win-light);
+    padding: 2px 4px;
+    font-weight: bold;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    letter-spacing: 1px;
+}
+
+.win-btn {
+    background-color: var(--win-gray);
+    border: none;
+    box-shadow: 
+        inset 1px 1px var(--win-light), 
+        inset -1px -1px var(--win-dark-shadow),
+        inset 2px 2px var(--win-light), 
+        inset -2px -2px var(--win-shadow);
+    color: var(--win-text);
+    padding: 6px 12px;
+    font-family: var(--font-retro);
+    font-size: 1.1rem;
+    cursor: pointer;
+    
+    &:active {
+        box-shadow: 
+            inset 1px 1px var(--win-dark-shadow), 
+            inset -1px -1px var(--win-light), 
+            inset 2px 2px var(--win-shadow), 
+            inset -2px -2px var(--win-light);
+        transform: translate(1px, 1px);
+    }
+}
+
+.win-input {
+    border: none;
+    box-shadow: 
+        inset 1px 1px var(--win-dark-shadow), 
+        inset -1px -1px var(--win-light), 
+        inset 2px 2px var(--win-shadow), 
+        inset -2px -2px var(--win-light);
+    background-color: var(--win-light);
+    padding: 4px;
+    font-family: var(--font-retro);
+}
+

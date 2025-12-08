@@ -1,0 +1,287 @@
+$bg-color: #008080; // Classic Teal
+$panel-bg: var(--win-gray);
+$text-color: var(--win-text);
+
+:host {
+  display: block;
+  font-family: var(--font-retro);
+  height: 100%;
+}
+
+.desktop-container {
+  display: flex;
+  flex-direction: column;
+  height: 100vh;
+  background-color: $bg-color;
+  background-image: url("https://mw17.github.io/Windows-95-UI-Kit/assets/img/desktop.jpg");
+  background-size: cover;
+  color: $text-color;
+  overflow: hidden;
+}
+
+.header-bar {
+  background-color: var(--win-blue);
+  color: white;
+  padding: 5px;
+  font-weight: bold;
+  border-bottom: 2px solid var(--win-light);
+  display: block;
+}
+
+.main-body {
+  flex-grow: 1;
+  display: flex;
+  gap: 15px;
+  padding: 15px;
+  overflow: hidden;
+  align-items: stretch;
+}
+
+.win-window {
+  padding: 3px;
+  display: flex;
+  flex-direction: column;
+
+  &.minimized {
+    height: auto !important;
+    flex-grow: 0 !important;
+    min-height: 0;
+  }
+
+  .win-title-bar {
+    margin-bottom: 4px;
+    display: flex;
+    justify-content: space-between;
+
+    .small-btn {
+      padding: 0 4px;
+      font-size: 0.8rem;
+      line-height: 1;
+      min-width: 16px;
+      height: 16px;
+    }
+  }
+
+  .window-inner-content {
+    flex-grow: 1;
+    padding: 10px;
+    display: flex;
+    flex-direction: column;
+    gap: 15px;
+    overflow: hidden;
+  }
+}
+
+.win-input-inset {
+  border: 2px solid;
+  border-color: #808080 #ffffff #ffffff #808080;
+  background-color: white;
+}
+.context-switch {
+  display: flex;
+  gap: 5px;
+  margin-bottom: 5px;
+
+  button {
+    flex: 1;
+    padding: 4px;
+    cursor: pointer;
+
+    &.active {
+      background: #ffffff;
+      box-shadow: inset 2px 2px 0px #000000, inset -2px -2px 0px #c0c0c0;
+      font-weight: bold;
+    }
+  }
+}
+
+/* Left Panel: Editor */
+.left-panel {
+  width: 320px;
+  flex-shrink: 0;
+
+  .input-group {
+    display: flex;
+    flex-direction: column;
+    gap: 5px;
+
+    label {
+      font-size: 1rem;
+    }
+
+    .label-row {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+    }
+
+    .file-upload-wrapper {
+      padding: 5px;
+      background-color: white;
+
+      &.has-file {
+        background-color: var(--win-gray);
+      }
+
+      .file-input {
+        width: 100%;
+        font-family: inherit;
+        background: transparent;
+        color: var(--win-text);
+
+        &::file-selector-button {
+          background-color: #c0c0c0;
+          color: black;
+          border: 2px solid;
+
+          border-color: #ffffff #808080 #808080 #ffffff;
+          font-family: inherit;
+          font-size: 0.9rem;
+          padding: 2px 6px;
+          margin-right: 8px;
+          cursor: pointer;
+
+          &:active {
+            border-color: #808080 #ffffff #ffffff #808080;
+          }
+        }
+      }
+
+      .selected-file-display {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        font-size: 0.9rem;
+        padding: 2px 5px;
+
+        span {
+          overflow: hidden;
+          text-overflow: ellipsis;
+          white-space: nowrap;
+          max-width: 80%;
+        }
+      }
+    }
+
+    .instruction-area {
+      flex-grow: 1;
+      width: 100%;
+      height: 100px;
+      padding: 5px;
+      resize: none;
+
+      &:focus {
+        outline: none;
+      }
+    }
+  }
+
+  .action-buttons {
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+
+    .win-btn {
+      width: 100%;
+      text-align: center;
+      font-weight: bold;
+    }
+  }
+}
+
+/* Center Panel: Preview */
+.center-panel {
+  flex-grow: 1;
+
+  .center-content {
+    padding: 0;
+    background-color: #808080;
+  }
+
+  .image-preview-placeholder {
+    width: 100%;
+    height: 100%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    background-color: #c0c0c0;
+
+    .preview-img {
+      max-width: 100%;
+      max-height: 100%;
+      border: 2px solid black;
+      box-shadow: 5px 5px 0px rgba(0, 0, 0, 0.5);
+    }
+  }
+}
+
+/* Right Panel: Trending */
+.right-panel {
+  width: 250px;
+  flex-shrink: 0;
+
+  .window-inner-content {
+    gap: 5px;
+    display: flex;
+    flex-direction: column;
+  }
+
+  .template-actions {
+    display: flex;
+    justify-content: center;
+    padding-bottom: 5px;
+
+    .upload-btn {
+      width: 100%;
+      cursor: pointer;
+      input {
+        display: none;
+      }
+    }
+  }
+
+  .meme-list-container {
+    padding: 0;
+    flex-grow: 1;
+    overflow-y: auto;
+
+    &::-webkit-scrollbar {
+      width: 16px;
+      background-color: #dfdfdf;
+    }
+    &::-webkit-scrollbar-thumb {
+      background-color: #c0c0c0;
+      border: 2px solid;
+      border-color: #ffffff #808080 #808080 #ffffff;
+    }
+
+    .template-grid {
+      display: grid;
+      grid-template-columns: repeat(2, 1fr);
+      gap: 4px;
+      padding: 4px;
+    }
+
+    .meme-item {
+      aspect-ratio: 1;
+      cursor: pointer;
+      border: 2px solid transparent;
+      background-color: #c0c0c0;
+      width: 90%;
+      margin: 0 auto;
+
+      img {
+        width: 100%;
+        height: 100%;
+        object-fit: cover;
+        border: 2px solid #ffffff;
+        outline: 1px solid #000000;
+        display: block;
+      }
+
+      &:hover img {
+        border-color: var(--win-blue);
+      }
+    }
+  }
+}
