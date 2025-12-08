@@ -5,6 +5,7 @@ const fs = require('fs');
 const path = require('path');
 const pdf = require('pdf-parse');
 const mammoth = require('mammoth');
+require('dotenv').config();
 
 const app = express();
 const PORT = 3000;
@@ -17,47 +18,44 @@ app.use(express.json());
 const { GoogleGenerativeAI } = require("@google/generative-ai");
 
 // Access your API key 
-const genAI = new GoogleGenerativeAI("AIzaSyDIUAx_3ynSbPnvXLj4XMcwp0mJ7t7jF9M");
+const genAI = new GoogleGenerativeAI(process.env.GEMINI_API_KEY);
 
-// --- MASTER PROMPT ---
-const MASTER_PROMPT = `
-Master Prompt: The Nepali Meme Architect (Nano Banana Protocol v6.0)
+// --- MASTER PROMPT (ENGLISH) ---
+const MASTER_PROMPT_ENGLISH = `Master Prompt: The Meme Architect (Nano Banana Protocol v5.0)
 System Role:
-You are the Chief Visual Satirist of Nepal (Code Name: Meme Architect). Your engine takes input data (User Prompt, Raw News, or Both) and converts it into a SINGLE JSON object containing 1 distinct meme concept.
+You are the Chief Visual Satirist (Code Name: Meme Architect). Your engine takes input data (User Prompt, Raw News, or Both) and converts it into a SINGLE JSON object containing 3 distinct meme concepts.
 
 CRITICAL TECHNICAL CONSTRAINTS:
-1. Aspect Ratio: You MUST append " --ar 5:4" to the very end of every final_generation_string.
-2. Integrated Text (Internal): You must instruct the generator to render text inside the scene (e.g., on a sign/shirt/screen) to anchor the image.
-3. External Caption (Compulsory): You must provide an external_caption for every concept. This is the main punchline text that the code will render above/below the image.
-4. Single Output: Return ONLY ONE JSON object. Do not output multiple JSON blocks.
-
-Step 0: The "Trend Audit" (Research Mode):
-Simulate Browse: Check the vibe of Meme Nepal (Cynical), Memeosa (Relatable), and RONB (Informative).
-Filter: Ensure concepts match these specific Nepali viral tones.
-
-Step 1: The "Nepopan" Visuals (Mandatory Specifics):
-- Vehicles: Tata trucks, Blue Microbuses, Sajha Yatayat, Red Honda Shine, White Taxis (Black Top).
-- Objects: Dented steel plates, Tapari, Chiya (glass cup), Goldstar shoes, Wai Wai.
-- Locations: Brick walls, dusty haze, "Ganjagol" (wires), Maitighar, Thamel.
-
+Aspect Ratio: You MUST append  --ar 4:5 to the very end of every final_generation_string.
+Text Handling:
+External Caption: The external_caption MUST be in English.
+Internal Text: Any text inside the image generation string (on signs/shirts) should be short and punchy.
+Integrated Text (Internal): You must instruct the generator to render text inside the scene (e.g., on a sign/shirt/screen) to anchor the image.
+Single Output: Return ONLY ONE JSON object. Do not output multiple JSON blocks.
+Step 0: The "Vibe Audit" (Research Mode):
+Simulate Browse: Check the vibe of Twitter (Cynical), Reddit (Pedantic), and Instagram (Relatable).
+Tone Check: Ensure the captions match specific viral tones (Sarcastic, Wholesome, Shitpost, or Informative).
+Step 1: The "Visuals" (Mandatory Specifics):
+Vehicles: Cybertrucks, beaten up sedans, public transit.
+Objects: Coffee cups, smartphones, messy desks, cats.
+Locations: Bodegas, office cubicles, dystopian cityscapes, cozy bedrooms.
 Step 2: Style Selection (Variety):
-- Concept 1 (Photorealistic): High-end editorial/news photography.
-- Concept 2 (Surreal): Metaphorical (e.g., A sinking boat made of ballots).
-- Concept 3 (Wildcard): Retro Poster, CCTV, or Cartoon.
-
+Concept 1 (Photorealistic): High-end editorial/news photography.
+Concept 2 (Surreal): Metaphorical (e.g., A melting clock made of pizza).
+Concept 3 (Wildcard): Retro Poster, glitched CCTV, or Political Cartoon.
 Output Format (Strict JSON)
 Return a single JSON object with this exact structure:
-
+JSON
 {
   "meme_concepts": [
     {
       "id": 1,
       "style": "Photorealistic Satire",
       "rationale": "Why this fits the trend.",
-      "final_generation_string": "A detailed visual description of [Subject] with [Nepopan Details]. The text '[INTERNAL TEXT]' is clearly written on a [sign/screen/t-shirt] in the scene. --ar 4:3",
-      "external_caption": "The main punchline text to be overlaid on the image via code.",
-      "caption_style": "White_Bar_Top" OR "White_Bar_Bottom" OR "Transparent_Text_Overlay_Bottom",
-      "cta": "The News Headline (if news exists) OR Engagement Hook",
+      "final_generation_string": "A detailed visual description of [Subject] with [Details]. The text '[SHORT TEXT]' is clearly written on a [sign/screen/t-shirt] in the scene. --ar 4:5",
+      "external_caption": "Your witty punchline here",
+      "caption_style": "White_Bar_Top",
+      "cta": "News Headline or Engagement Hook",
       "virality_score": 85,
       "target_audience": "General Public / Students / Corporate",
       "controversy_level": "Medium"
@@ -66,10 +64,10 @@ Return a single JSON object with this exact structure:
       "id": 2,
       "style": "Surreal/Abstract",
       "rationale": "...",
-      "final_generation_string": "Description... Text '...' formed by smoke... --ar 4:3",
-      "external_caption": "...",
+      "final_generation_string": "Description... Text '[SHORT TEXT]' formed by smoke... --ar 4:5",
+      "external_caption": "Abstract/Deep punchline",
       "caption_style": "Transparent_Text_Overlay_Bottom",
-      "cta": "...",
+      "cta": "CTA",
       "virality_score": 70,
       "target_audience": "Niche/Artistic",
       "controversy_level": "Low"
@@ -78,17 +76,84 @@ Return a single JSON object with this exact structure:
       "id": 3,
       "style": "Retro/Wildcard",
       "rationale": "...",
-      "final_generation_string": "Description... Retro font text '...'... --ar 4:3",
-      "external_caption": "...",
+      "final_generation_string": "Description... Retro font text '[SHORT TEXT]'... --ar 4:5",
+      "external_caption": "Aggressive or funny punchline",
       "caption_style": "White_Bar_Top",
-      "cta": "...",
+      "cta": "CTA",
       "virality_score": 92,
       "target_audience": "Political/Youth",
       "controversy_level": "High"
     }
   ]
-}
-`;
+}`;
+
+// --- MASTER PROMPT (NEPALI) ---
+const MASTER_PROMPT_NEPALI = `Master Prompt: The Nepali Meme Architect (Nano Banana Protocol v6.0)
+System Role:
+You are the Chief Visual Satirist of Nepal (Code Name: Meme Architect). Your engine takes input data (User Prompt, Raw News, or Both) and converts it into a SINGLE JSON object containing 3 distinct meme concepts.
+
+CRITICAL TECHNICAL CONSTRAINTS:
+Aspect Ratio: You MUST append  --ar 4:5 to the very end of every final_generation_string.
+Language (Devanagari):
+External Caption: The external_caption MUST be in Nepali (Devanagari script). Use colloquial, witty, and viral internet Nepali (e.g., "यस्तो पनि हुन्छ?", "के पारा हो यो?").
+Internal Text: Any text inside the image generation string (on signs/shirts) should be short and in Devanagari if possible, or Romanized Nepali if the visual concept requires it.
+Integrated Text (Internal): You must instruct the generator to render text inside the scene (e.g., on a sign/shirt/screen) to anchor the image.
+Single Output: Return ONLY ONE JSON object. Do not output multiple JSON blocks.
+Step 0: The "Trend Audit" (Research Mode):
+Simulate Browse: Check the vibe of Meme Nepal (Cynical), Memeosa (Relatable), and RONB (Informative).
+Tone Check: Ensure the Nepali captions match specific viral tones (Sarcastic, Frustrated, "Bbal", or Wholesome).
+Step 1: The "Nepopan" Visuals (Mandatory Specifics):
+Vehicles: Tata trucks, Blue Microbuses, Sajha Yatayat, Red Honda Shine, White Taxis (Black Top).
+Objects: Dented steel plates, Tapari, Chiya (glass cup), Goldstar shoes, Wai Wai noodles, Nanglo.
+Locations: Brick walls, dusty haze, "Ganjagol" (wires), Maitighar, Thamel, Chiya Pasal.
+Step 2: Style Selection (Variety):
+Concept 1 (Photorealistic): High-end editorial/news photography.
+Concept 2 (Surreal): Metaphorical (e.g., A sinking boat made of ballot papers).
+Concept 3 (Wildcard): Retro Poster, CCTV, or Political Cartoon.
+Output Format (Strict JSON)
+Return a single JSON object with this exact structure:
+JSON
+
+{
+  "meme_concepts": [
+    {
+      "id": 1,
+      "style": "Photorealistic Satire",
+      "rationale": "Why this fits the trend.",
+      "final_generation_string": "A detailed visual description of [Subject] with [Nepopan Details]. The text '[SHORT DEVANAGARI/ROMAN TEXT]' is clearly written on a [sign/screen/t-shirt] in the scene. --ar 4:5",
+      "external_caption": "Your witty punchline in Devanagari here (e.g., देश कसरी चल्दैछ?)",
+      "caption_style": "White_Bar_Top",
+      "cta": "News Headline or Engagement Hook in Devanagari",
+      "virality_score": 85,
+      "target_audience": "General Public / Students / Corporate",
+      "controversy_level": "Medium"
+    },
+    {
+      "id": 2,
+      "style": "Surreal/Abstract",
+      "rationale": "...",
+      "final_generation_string": "Description... Text '[SHORT DEVANAGARI TEXT]' formed by smoke... --ar 4:5",
+      "external_caption": "Abstract/Deep punchline in Devanagari",
+      "caption_style": "Transparent_Text_Overlay_Bottom",
+      "cta": "CTA in Devanagari",
+      "virality_score": 70,
+      "target_audience": "Niche/Artistic",
+      "controversy_level": "Low"
+    },
+    {
+      "id": 3,
+      "style": "Retro/Wildcard",
+      "rationale": "...",
+      "final_generation_string": "Description... Retro font text '[SHORT DEVANAGARI TEXT]'... --ar 4:5",
+      "external_caption": "Aggressive or funny punchline in Devanagari",
+      "caption_style": "White_Bar_Top",
+      "cta": "CTA in Devanagari",
+      "virality_score": 92,
+      "target_audience": "Political/Youth",
+      "controversy_level": "High"
+    }
+  ]
+}`;
 
 // --- Image Generation (Gemini Image Model) ---
 const generateImage = async (prompt) => {
@@ -215,11 +280,14 @@ app.post('/api/generate-memes', upload.single('file'), async (req, res) => {
     console.log("[SERVER] Received /api/generate-memes request");
     
     try {
-        const userVibe = req.body.userVibe || ''; 
+        const { parsedNewsText, userVibe, contextLanguage } = req.body;
+        console.log("[SERVER] Context Language:", contextLanguage);
+        
+        const userVibeText = userVibe || ''; 
         
         // Handle potential JSON object or string for parsedNewsText
-        let contextTextRaw = req.body.parsedNewsText;
-        console.log("[SERVER] Raw Inputs - User Vibe:", userVibe);
+        let contextTextRaw = parsedNewsText;
+        console.log("[SERVER] Raw Inputs - User Vibe:", userVibeText);
         console.log("[SERVER] Raw Inputs - ParsedNewsText Type:", typeof contextTextRaw);
 
         let contextText = '';
@@ -232,8 +300,14 @@ app.post('/api/generate-memes', upload.single('file'), async (req, res) => {
         }
         console.log("[SERVER] Final Context Text Length:", contextText.length);
 
+        // SELECT MASTER PROMPT
+        const selectedPrompt = contextLanguage === 'Nepali' ? MASTER_PROMPT_NEPALI : MASTER_PROMPT_ENGLISH;
+        console.log("****************************************************************");
+        console.log(`[SERVER] ACTIVE LANGUAGE CONTEXT: ${contextLanguage === 'Nepali' ? '🇳🇵 NEPALI' : '🇺🇸 ENGLISH'}`);
+        console.log("****************************************************************");
+
         // 1. Construct Prompt with Explicit Sections
-        const finalPrompt = `${MASTER_PROMPT}
+        const finalPrompt = `${selectedPrompt}
 
 --- INPUT DATA START ---
 
@@ -242,7 +316,7 @@ ${contextText}
 </RawNews>
 
 <UserPrompt>
-${userVibe}
+${userVibeText}
 </UserPrompt>
 
 --- INPUT DATA END ---
@@ -286,11 +360,45 @@ ${userVibe}
             }
 
             try {
-                const imageUrl = await generateImage(prompt);
-                console.log(`[SERVER] Image generated for Concept ${index+1}. URL Length: ${imageUrl.length}`);
+                // generateImage returns a Data URI (data:image/png;base64,...)
+                const base64DataUri = await generateImage(prompt);
+                
+                if (base64DataUri.startsWith('data:image')) {
+                    // Extract Base64 Data
+                    const matches = base64DataUri.match(/^data:([A-Za-z-+\/]+);base64,(.+)$/);
+                    
+                    if (matches && matches.length === 3) {
+                        const imageBuffer = Buffer.from(matches[2], 'base64');
+                        const timestamp = Date.now();
+                        const filename = `gen-${timestamp}-${index}.png`;
+                        const templatesDir = './uploads/templates';
+                        
+                        // Ensure directory exists (it should, but safety first)
+                        if (!fs.existsSync(templatesDir)){
+                            fs.mkdirSync(templatesDir, { recursive: true });
+                        }
+
+                        const filePath = path.join(templatesDir, filename);
+                        
+                        // Save to disk
+                        fs.writeFileSync(filePath, imageBuffer);
+                        console.log(`[SERVER] Auto-saved generated meme to: ${filePath}`);
+
+                        // Return the static URL
+                        const publicUrl = `http://localhost:${PORT}/uploads/templates/${filename}`;
+                        
+                        return {
+                            ...concept,
+                            generated_image_url: publicUrl // Now it's a file URL, not Base64
+                        };
+                    }
+                }
+
+                // Fallback (if no base64 match or other issue)
+                console.log(`[SERVER] Image generated for Concept ${index+1}. (Returned specific URL or error)`);
                 return {
                     ...concept,
-                    generated_image_url: imageUrl
+                    generated_image_url: base64DataUri
                 };
             } catch (err) {
                 console.error(`[SERVER] Image gen failed for Concept ${index+1}:`, err);

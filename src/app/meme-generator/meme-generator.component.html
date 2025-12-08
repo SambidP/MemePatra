@@ -96,10 +96,12 @@
         <!-- Loading State for Generation -->
         <app-windows-loader *ngIf="isLoading()"></app-windows-loader>
 
-        <!-- Placeholder if no memes yet -->
+        <!-- Placeholder -->
         <div
           class="image-preview-placeholder win-input-inset"
-          *ngIf="!isLoading() && generatedMemes().length === 0"
+          *ngIf="
+            !isLoading() && generatedMemes().length === 0 && !selectedTemplate()
+          "
         >
           <div style="text-align: center; padding: 20px">
             <p>No memes generated yet.</p>
@@ -112,62 +114,130 @@
           </div>
         </div>
 
-        <!-- Generated Meme Display -->
+        <!-- Generated Meme Display OR Selected Template -->
         <div
           class="generated-meme-display"
-          *ngIf="!isLoading() && generatedMemes().length > 0"
+          *ngIf="
+            !isLoading() && (generatedMemes().length > 0 || selectedTemplate())
+          "
         >
+          <!-- 1. Prev Button (Left) -->
+          <button
+            class="nav-btn left"
+            *ngIf="!selectedTemplate()"
+            (click)="prevMeme()"
+            title="Previous Meme"
+          >
+            &lt;
+          </button>
+
+          <!-- 2. The Meme Card (Center) -->
           <div class="meme-card">
-            <!-- Image from Backend (Base64 or URL) -->
+            <!-- Download Button -->
+            <button class="download-btn" (click)="downloadMeme()">💾</button>
+
+            <!-- Image: Either Generated OR Manual Template -->
             <img
               [src]="
-                generatedMemes()[currentMemeIndex()].generated_image_url ||
-                'https://placehold.co/600x400?text=Generation+Failed'
+                selectedTemplate()
+                  ? selectedTemplate()
+                  : generatedMemes()[currentMemeIndex()].generated_image_url ||
+                    'https://placehold.co/600x400?text=Generation+Failed'
               "
               class="preview-img"
-              alt="Generated Meme"
+              alt="Meme"
             />
 
-            <!-- Caption Overlay (External Caption) -->
-            <div class="meme-caption">
+            <!-- Manual Text Overlay (Edit Mode) -->
+            <div
+              class="manual-text-overlay"
+              *ngIf="selectedTemplate() && isManualEditMode()"
+            >
+              <textarea
+                class="retro-text-input"
+                [value]="manualText()"
+                (input)="updateManualText($event)"
+                cdkDrag
+              ></textarea>
+            </div>
+
+            <!-- Manual Text Display (View Mode) -->
+            <div
+              class="manual-text-display"
+              *ngIf="selectedTemplate() && !isManualEditMode()"
+            >
+              <pre class="retro-text">{{ manualText() }}</pre>
+            </div>
+
+            <!-- Caption (Only for AI Generated) -->
+            <div class="meme-caption" *ngIf="!selectedTemplate()">
               {{ generatedMemes()[currentMemeIndex()].external_caption }}
             </div>
 
-            <!-- Metadata / Rationale -->
-            <div
-              class="meme-meta"
-              style="
-                background: white;
-                padding: 5px;
-                border: 1px solid gray;
-                margin-top: 10px;
-                font-size: 0.8rem;
-              "
+            <!-- Edit Controls (Inside Card Area) -->
+            <button
+              class="win-btn"
+              *ngIf="selectedTemplate()"
+              (click)="toggleEditMode()"
+              style="margin-top: 5px"
             >
-              <strong>Style:</strong>
-              {{ generatedMemes()[currentMemeIndex()].style }} <br />
-              <strong>Virality:</strong>
-              {{ generatedMemes()[currentMemeIndex()].virality_score }}/100
+              {{ isManualEditMode() ? "Done" : "Edit Text" }}
+            </button>
+          </div>
+
+          <!-- 3. Details Sidebar (Right of Image) -->
+          <div class="meme-details-sidebar" *ngIf="!selectedTemplate()">
+            <div class="sidebar-header">Meme Properties</div>
+            <div class="sidebar-content">
+              <div class="prop-row">
+                <strong>Style:</strong>
+                <span>{{ generatedMemes()[currentMemeIndex()].style }}</span>
+              </div>
+              <div class="prop-row">
+                <strong>CTA:</strong>
+                <span>{{ generatedMemes()[currentMemeIndex()].cta }}</span>
+              </div>
+              <div class="prop-row">
+                <strong>Target:</strong>
+                <span>{{
+                  generatedMemes()[currentMemeIndex()].target_audience
+                }}</span>
+              </div>
+              <div class="prop-row">
+                <strong>Controversy:</strong>
+                <span>{{
+                  generatedMemes()[currentMemeIndex()].controversy_level
+                }}</span>
+              </div>
+              <div class="prop-row separator"></div>
+              <div class="prop-row">
+                <strong>Virality:</strong>
+                <div class="virality-bar">
+                  <div
+                    class="fill"
+                    [style.width.%]="
+                      generatedMemes()[currentMemeIndex()].virality_score
+                    "
+                  ></div>
+                </div>
+                <span
+                  >{{
+                    generatedMemes()[currentMemeIndex()].virality_score
+                  }}/100</span
+                >
+              </div>
             </div>
           </div>
 
-          <!-- Navigation Controls -->
-          <div
-            class="carousel-controls"
-            style="
-              margin-top: 10px;
-              display: flex;
-              justify-content: center;
-              gap: 10px;
-            "
+          <!-- 4. Next Button (Right) -->
+          <button
+            class="nav-btn right"
+            *ngIf="!selectedTemplate()"
+            (click)="nextMeme()"
+            title="Next Meme"
           >
-            <button class="win-btn" (click)="prevMeme()">&lt; Prev</button>
-            <span
-              >{{ currentMemeIndex() + 1 }} /
-              {{ generatedMemes().length }}</span
-            >
-            <button class="win-btn" (click)="nextMeme()">Next &gt;</button>
-          </div>
+            &gt;
+          </button>
         </div>
       </div>
     </div>
@@ -176,7 +246,7 @@
     <div class="win-window panel right-panel">
       <div class="win-title-bar">
         <span>{{
-          activeTab === "trendy" ? "Trendy Memes" : "Your Templates"
+          activeTab === "trendy" ? "Trendy Memes 🔥" : "Your Templates"
         }}</span>
         <div class="win-controls">
           <button class="win-btn small-btn">-</button>
@@ -216,14 +286,26 @@
         <div class="meme-list-container win-input-inset">
           <!-- Trendy Grid -->
           <div class="template-grid" *ngIf="activeTab === 'trendy'">
-            <div *ngFor="let img of trendyTemplates" class="meme-item">
-              <img [src]="img" alt="Trendy Meme" />
+            <div
+              *ngFor="let tmpl of trendyTemplates"
+              class="meme-item"
+              (click)="selectTemplate(tmpl.url)"
+            >
+              <img [src]="tmpl.url" alt="Trendy Meme" />
+              <div class="stats-overlay">
+                <span>❤️ {{ tmpl.likes }}</span>
+                <span>🔗 {{ tmpl.shares }}</span>
+              </div>
             </div>
           </div>
 
           <!-- Dynamic Grid -->
           <div class="template-grid" *ngIf="activeTab === 'custom'">
-            <div *ngFor="let tmpl of templates()" class="meme-item">
+            <div
+              *ngFor="let tmpl of templates()"
+              class="meme-item"
+              (click)="selectTemplate(tmpl)"
+            >
               <img [src]="tmpl" alt="Template" />
             </div>
             <div

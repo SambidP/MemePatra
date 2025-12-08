@@ -269,6 +269,7 @@ $text-color: var(--win-text);
       background-color: #c0c0c0;
       width: 90%;
       margin: 0 auto;
+      position: relative; // Context for absolute overlay
 
       img {
         width: 100%;
@@ -279,9 +280,279 @@ $text-color: var(--win-text);
         display: block;
       }
 
-      &:hover img {
-        border-color: var(--win-blue);
+      .stats-overlay {
+        position: absolute;
+        bottom: 0;
+        left: 0;
+        width: 100%;
+        background: rgba(0, 0, 0, 0.75);
+        color: white;
+        display: flex;
+        justify-content: space-around;
+        align-items: center;
+        padding: 4px;
+        font-size: 0.8rem;
+        font-weight: bold;
+        opacity: 0;
+        transition: opacity 0.2s ease;
+        pointer-events: none; // Don't interfere with click
+      }
+
+      &:hover {
+        img {
+          border-color: var(--win-blue);
+        }
+        .stats-overlay {
+          opacity: 1;
+        }
       }
     }
+  }
+}
+
+/* Generated Meme Display Styles (Corrected) */
+.generated-meme-display {
+  display: flex;
+  flex-direction: row; // Horizontal layout
+  align-items: center; // Vertically center everything
+  justify-content: center; // Center the group
+  gap: 20px;
+  padding: 10px;
+  background-color: #808080;
+  height: 100%;
+  overflow-x: auto; // Allow scroll if it gets too wide
+
+  // Navigation Buttons (Left/Right)
+  .nav-btn {
+    background-color: var(--win-gray);
+    border: 2px outset white;
+    min-width: 40px;
+    height: 100px; // Tall button for easy clicking
+    font-family: var(--font-retro);
+    font-weight: bold;
+    font-size: 1.5rem;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    flex-shrink: 0;
+
+    &:active {
+      border-style: inset;
+    }
+
+    &:hover {
+      background-color: #dcdcdc;
+    }
+
+    &.left {
+      margin-right: auto; // Push to edges if we want spread, or just let gap handle it
+    }
+  }
+
+  // Meme Card (Center)
+  .meme-card {
+    background-color: white;
+    padding: 10px;
+    border: 2px solid;
+    border-color: #ffffff #808080 #808080 #ffffff;
+    width: 100%;
+    max-width: 350px; // Slightly smaller to fit layout
+    box-shadow: 4px 4px 0px rgba(0, 0, 0, 0.2);
+    display: flex;
+    flex-direction: column;
+    position: relative; // Needed for absolute positioning
+    flex-shrink: 0;
+
+    .download-btn {
+      position: absolute;
+      top: 15px;
+      right: 15px;
+      z-index: 10;
+      background: white;
+      border: 2px outset white;
+      cursor: pointer;
+      font-size: 1.2rem;
+      padding: 2px 5px;
+
+      &:active {
+        border-style: inset;
+      }
+    }
+
+    .preview-img {
+      width: 100%;
+      aspect-ratio: 4 / 5; // User requested 4:5
+      object-fit: contain; // Ensure whole meme is visible
+      background-color: #000;
+      border: 1px solid #000;
+      margin-bottom: 10px;
+      max-height: 60vh; // Viewport constraint
+    }
+
+    .manual-text-overlay {
+      position: absolute;
+      top: 50%;
+      left: 50%;
+      transform: translate(-50%, -50%);
+      width: 80%;
+      z-index: 5;
+
+      .retro-text-input {
+        width: 100%;
+        min-height: 100px;
+        height: auto;
+        background: rgba(255, 255, 255, 0.9);
+        border: 2px solid black;
+        color: black;
+        font-family: var(--font-retro);
+        font-size: 1.5rem;
+        font-weight: bold;
+        text-transform: uppercase;
+        text-align: center;
+        padding: 10px;
+        resize: both;
+        overflow: hidden;
+        white-space: pre-wrap;
+        box-shadow: 5px 5px 0px rgba(0, 0, 0, 0.5);
+        outline: none;
+
+        &:focus {
+          background: white;
+        }
+      }
+    }
+
+    .manual-text-display {
+      position: absolute;
+      top: 80%;
+      left: 50%;
+      transform: translate(-50%, -50%);
+      width: 80%;
+      z-index: 4;
+      pointer-events: none; // Click through to image
+
+      .retro-text {
+        background: white;
+        color: black;
+        border: 2px solid black;
+        font-family: var(--font-retro);
+        font-size: 1.5rem;
+        font-weight: bold;
+        text-transform: uppercase;
+        text-align: center;
+        padding: 10px;
+        white-space: pre-wrap;
+        box-shadow: 5px 5px 0px rgba(0, 0, 0, 0.5);
+        margin: 0;
+      }
+    }
+
+    .meme-caption {
+      font-family: var(--font-retro);
+      font-size: 1.1rem;
+      font-weight: bold;
+      text-align: center;
+      margin: 10px 0;
+      color: black;
+      line-height: 1.4;
+    }
+  }
+
+  // Sidebar (Right)
+  .meme-details-sidebar {
+    width: 220px;
+    background: var(--win-gray);
+    border: 2px outset white;
+    padding: 4px;
+    flex-shrink: 0;
+    display: flex;
+    flex-direction: column;
+    gap: 5px;
+
+    .sidebar-header {
+      background: var(--win-blue);
+      color: white;
+      padding: 3px 5px;
+      font-weight: bold;
+      font-size: 0.9rem;
+    }
+
+    .sidebar-content {
+      padding: 5px;
+      display: flex;
+      flex-direction: column;
+      gap: 8px;
+      font-size: 0.85rem;
+    }
+
+    .prop-row {
+      display: flex;
+      flex-direction: column;
+      gap: 2px;
+
+      strong {
+        color: #444;
+      }
+      span {
+        background: white;
+        border: 1px inset white;
+        padding: 2px 4px;
+      }
+
+      &.separator {
+        border-bottom: 2px solid #a0a0a0;
+        margin: 5px 0;
+      }
+    }
+
+    .virality-bar {
+      height: 12px;
+      background: white;
+      border: 1px inset white;
+      width: 100%;
+      position: relative;
+
+      .fill {
+        height: 100%;
+        background: linear-gradient(
+          90deg,
+          #00ff00,
+          #ffff00,
+          #ff0000
+        ); // Heatmap
+      }
+    }
+  }
+}
+
+/* Responsive Media Queries (Corrected) */
+@media screen and (max-width: 768px) {
+  .desktop-container {
+    height: auto;
+    min-height: 100vh;
+    overflow-y: auto;
+  }
+
+  .main-body {
+    flex-direction: column;
+    padding: 10px;
+    height: auto;
+  }
+
+  .left-panel,
+  .right-panel,
+  .center-panel {
+    width: 100% !important;
+    height: auto;
+    flex-grow: 0;
+  }
+
+  .win-window.minimized {
+    height: 40px !important;
+  }
+
+  .center-panel .window-inner-content {
+    min-height: 400px;
   }
 }

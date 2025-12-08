@@ -33,12 +33,17 @@ export class MemeGeneratorComponent implements OnInit {
   activeTab: 'trendy' | 'custom' = 'trendy';
 
   // Hardcoded Trendy Templates
+  // Hardcoded Trendy Templates with Stats
   trendyTemplates = [
-    'https://i.imgflip.com/30b1gx.jpg', // Drake
-    'https://i.imgflip.com/1g8my4.jpg', // Two Buttons
-    'https://i.imgflip.com/1ur9b0.jpg', // Distracted Boyfriend
-    'https://i.imgflip.com/261o3j.jpg', // Expanding Brain
-    'https://i.imgflip.com/265k.jpg',   // Batman Slapping Robin
+    { url: 'assets/images/templates/trend_1.jpeg', likes: '1.1k', shares: '232' },
+    { url: 'assets/images/templates/trend_2.jpeg', likes: '531', shares: '278' },
+    { url: 'assets/images/templates/trend_3.jpeg', likes: '2.3k', shares: '1.2k' },
+    { url: 'assets/images/templates/trend_4.jpeg', likes: '1.1k', shares: '407' },
+    { url: 'assets/images/templates/trend_5.jpeg', likes: '4.3k', shares: '1.7k' },
+    { url: 'assets/images/templates/trend_6.jpeg', likes: '6.8k', shares: '2.1k' },
+    { url: 'assets/images/templates/trend_7.jpeg', likes: '217', shares: '57' },
+    { url: 'assets/images/templates/trend_8.jpeg', likes: '4.6k', shares: '812' },
+    { url: 'assets/images/templates/trend_9.jpeg', likes: '782', shares: '86' },
   ];
 
   ngOnInit() {
@@ -113,8 +118,84 @@ export class MemeGeneratorComponent implements OnInit {
     }
   }
 
+  // Manual Editing Signals
+  selectedTemplate = signal<string | null>(null);
+  isManualEditMode = signal<boolean>(false);
+  manualText = signal<string>('Add a caption');
+
+  // Select a template for manual editing
+  selectTemplate(url: string) {
+    this.selectedTemplate.set(url);
+    this.generatedMemes.set([]); // Clear generated memes to avoid confusion
+    this.isManualEditMode.set(false); // Reset edit mode initially
+  }
+
+  // Toggle Edit Mode
+  toggleEditMode() {
+    this.isManualEditMode.update(v => !v);
+  }
+
+  // Update Manual Text
+  updateManualText(event: Event) {
+    const input = event.target as HTMLTextAreaElement;
+    this.manualText.set(input.value);
+  }
+
+  // Download Meme
+  async downloadMeme() {
+    // Dynamic import
+    const html2canvas = (await import('html2canvas')).default;
+    
+    // Select the card element
+    const element = document.querySelector('.meme-card') as HTMLElement;
+    if (element) {
+        try {
+            // Capture the card, excluding the download button from the image
+            const canvas = await html2canvas(element, {
+                useCORS: true, 
+                scale: 2,
+                ignoreElements: (element) => element.classList.contains('download-btn')
+            });
+            
+            const blob = await new Promise<Blob | null>(resolve => canvas.toBlob(resolve, 'image/png'));
+            if (!blob) throw new Error('Blob creation failed');
+
+            // Try File System Access API (Save As Dialog)
+            if ('showSaveFilePicker' in window) {
+                try {
+                    const handle = await (window as any).showSaveFilePicker({
+                        suggestedName: `memepatra-${Date.now()}.png`,
+                        types: [{
+                            description: 'PNG Image',
+                            accept: { 'image/png': ['.png'] },
+                        }],
+                    });
+                    const writable = await handle.createWritable();
+                    await writable.write(blob);
+                    await writable.close();
+                    return; // Success
+                } catch (err: any) {
+                     // If aborted or failed, do nothing or log
+                     if (err.name !== 'AbortError') console.error('File Picker failed:', err);
+                     return; 
+                }
+            }
+
+            // Fallback for browsers without File System Access API
+            const link = document.createElement('a');
+            link.download = `memepatra-${Date.now()}.png`;
+            link.href = canvas.toDataURL('image/png');
+            link.click();
+
+        } catch (err) {
+            console.error('Download failed:', err);
+        }
+    }
+  }
+
   // Generation
   onGenerate() {
+    this.selectedTemplate.set(null); // Clear manual template
     this.isLoading.set(true);
     const formData = new FormData();
     const currentFile = this.file();
@@ -123,8 +204,6 @@ export class MemeGeneratorComponent implements OnInit {
         formData.append('file', currentFile);
     }
     
-    // Instructions might be used as fallback context if file fails or is missing, 
-    // but primarily we just want the parsed text.
     formData.append('instructions', this.instructions());
 
     // 1. Parse Context
@@ -137,10 +216,11 @@ export class MemeGeneratorComponent implements OnInit {
               const parsedContext = parseResponse.parsedText;
               
               // 2. Generate Memes
-              // Input: parsedNewsText, userVibe
+              // Input: parsedNewsText, userVibe, contextLanguage
               const generatePayload = {
                   parsedNewsText: parsedContext,
-                  userVibe: this.instructions()
+                  userVibe: this.instructions(),
+                  contextLanguage: this.contextLanguage()
               };
 
               this.http.post<{ success: boolean, memes: any[] }>('http://localhost:3000/api/generate-memes', generatePayload)
@@ -150,6 +230,8 @@ export class MemeGeneratorComponent implements OnInit {
                         if (genResponse.success && genResponse.memes) {
                             this.generatedMemes.set(genResponse.memes);
                             this.currentMemeIndex.set(0); 
+                            // Auto-refresh templates to show newly generated history
+                            this.loadTemplates();
                         }
                         this.isLoading.set(false);
                     },
