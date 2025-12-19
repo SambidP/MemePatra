@@ -20,19 +20,9 @@
         <div class="input-group">
           <label>Upload Source</label>
           <app-windows-loader *ngIf="isLoading()"></app-windows-loader>
-          <div
-            *ngIf="!isLoading()"
-            class="file-upload-wrapper win-input-inset"
-            [class.has-file]="file()"
-          >
-            <input
-              type="file"
-              class="file-input"
-              placeholder="Upload file"
-              accept=".pdf,.docx"
-              (change)="onFileSelected($event)"
-              [style.display]="file() ? 'none' : 'block'"
-            />
+          <div *ngIf="!isLoading()" class="file-upload-wrapper win-input-inset" [class.has-file]="file()">
+            <input type="file" class="file-input" placeholder="Upload file" accept=".pdf,.docx"
+              (change)="onFileSelected($event)" [style.display]="file() ? 'none' : 'block'" />
             <div *ngIf="file()" class="selected-file-display">
               <span>{{ file()?.name }}</span>
               <button class="win-btn small-btn" (click)="removeFile()">
@@ -45,18 +35,10 @@
         <div class="input-group">
           <label>Context Language</label>
           <div class="context-switch">
-            <button
-              class="win-btn"
-              [class.active]="contextLanguage() === 'Nepali'"
-              (click)="setContext('Nepali')"
-            >
+            <button class="win-btn" [class.active]="contextLanguage() === 'Nepali'" (click)="setContext('Nepali')">
               Nepali
             </button>
-            <button
-              class="win-btn"
-              [class.active]="contextLanguage() === 'English'"
-              (click)="setContext('English')"
-            >
+            <button class="win-btn" [class.active]="contextLanguage() === 'English'" (click)="setContext('English')">
               English
             </button>
           </div>
@@ -66,11 +48,8 @@
           <div class="label-row">
             <label>Instructions</label>
           </div>
-          <textarea
-            placeholder="Enter instructions..."
-            class="instruction-area win-input"
-            (input)="updateInstructions($event)"
-          ></textarea>
+          <textarea placeholder="Enter instructions..." class="instruction-area win-input"
+            (input)="updateInstructions($event)"></textarea>
         </div>
 
         <div class="action-buttons">
@@ -89,45 +68,27 @@
           </button>
         </div>
       </div>
-      <div
-        class="window-inner-content center-content"
-        *ngIf="!isCenterMinimized"
-      >
+      <div class="window-inner-content center-content" *ngIf="!isCenterMinimized">
         <!-- Loading State for Generation -->
         <app-windows-loader *ngIf="isLoading()"></app-windows-loader>
 
         <!-- Placeholder -->
-        <div
-          class="image-preview-placeholder win-input-inset"
-          *ngIf="
+        <div class="image-preview-placeholder win-input-inset" *ngIf="
             !isLoading() && generatedMemes().length === 0 && !selectedTemplate()
-          "
-        >
+          ">
           <div style="text-align: center; padding: 20px">
             <p>No memes generated yet.</p>
-            <img
-              src="https://i.imgflip.com/30b1gx.jpg"
-              alt="Placeholder"
-              class="preview-img"
-              style="max-width: 200px; margin-top: 10px; opacity: 0.5"
-            />
+            <img src="https://i.imgflip.com/30b1gx.jpg" alt="Placeholder" class="preview-img"
+              style="max-width: 200px; margin-top: 10px; opacity: 0.5" />
           </div>
         </div>
 
         <!-- Generated Meme Display OR Selected Template -->
-        <div
-          class="generated-meme-display"
-          *ngIf="
+        <div class="generated-meme-display" *ngIf="
             !isLoading() && (generatedMemes().length > 0 || selectedTemplate())
-          "
-        >
+          ">
           <!-- 1. Prev Button (Left) -->
-          <button
-            class="nav-btn left"
-            *ngIf="!selectedTemplate()"
-            (click)="prevMeme()"
-            title="Previous Meme"
-          >
+          <button class="nav-btn left" *ngIf="!selectedTemplate()" (click)="prevMeme()" title="Previous Meme">
             &lt;
           </button>
 
@@ -137,36 +98,21 @@
             <button class="download-btn" (click)="downloadMeme()">💾</button>
 
             <!-- Image: Either Generated OR Manual Template -->
-            <img
-              [src]="
+            <img [src]="
                 selectedTemplate()
                   ? selectedTemplate()
                   : generatedMemes()[currentMemeIndex()].generated_image_url ||
                     'https://placehold.co/600x400?text=Generation+Failed'
-              "
-              class="preview-img"
-              alt="Meme"
-            />
+              " class="preview-img" alt="Meme" />
 
-            <!-- Manual Text Overlay (Edit Mode) -->
-            <div
-              class="manual-text-overlay"
-              *ngIf="selectedTemplate() && isManualEditMode()"
-            >
-              <textarea
-                class="retro-text-input"
-                [value]="manualText()"
-                (input)="updateManualText($event)"
-                cdkDrag
-              ></textarea>
-            </div>
+            <!-- Draggable Text Wrapper -->
+            <div class="draggable-text-wrapper" *ngIf="selectedTemplate()" cdkDrag cdkDragBoundary=".meme-card">
+              <div class="text-handle" cdkDragHandle></div>
 
-            <!-- Manual Text Display (View Mode) -->
-            <div
-              class="manual-text-display"
-              *ngIf="selectedTemplate() && !isManualEditMode()"
-            >
-              <pre class="retro-text">{{ manualText() }}</pre>
+              <textarea *ngIf="isManualEditMode()" class="retro-text-input" [value]="manualText()"
+                (input)="updateManualText($event)" (mousedown)="$event.stopPropagation()"></textarea>
+
+              <pre *ngIf="!isManualEditMode()" class="retro-text">{{ manualText() }}</pre>
             </div>
 
             <!-- Caption (Only for AI Generated) -->
@@ -175,12 +121,8 @@
             </div>
 
             <!-- Edit Controls (Inside Card Area) -->
-            <button
-              class="win-btn"
-              *ngIf="selectedTemplate()"
-              (click)="toggleEditMode()"
-              style="margin-top: 5px"
-            >
+            <button class="win-btn edit-toggle-btn" *ngIf="selectedTemplate()" (click)="toggleEditMode()"
+              style="margin-top: 5px">
               {{ isManualEditMode() ? "Done" : "Edit Text" }}
             </button>
           </div>
@@ -201,41 +143,31 @@
                 <strong>Target:</strong>
                 <span>{{
                   generatedMemes()[currentMemeIndex()].target_audience
-                }}</span>
+                  }}</span>
               </div>
               <div class="prop-row">
                 <strong>Controversy:</strong>
                 <span>{{
                   generatedMemes()[currentMemeIndex()].controversy_level
-                }}</span>
+                  }}</span>
               </div>
               <div class="prop-row separator"></div>
               <div class="prop-row">
                 <strong>Virality:</strong>
                 <div class="virality-bar">
-                  <div
-                    class="fill"
-                    [style.width.%]="
+                  <div class="fill" [style.width.%]="
                       generatedMemes()[currentMemeIndex()].virality_score
-                    "
-                  ></div>
+                    "></div>
                 </div>
-                <span
-                  >{{
-                    generatedMemes()[currentMemeIndex()].virality_score
-                  }}/100</span
-                >
+                <span>{{
+                  generatedMemes()[currentMemeIndex()].virality_score
+                  }}/100</span>
               </div>
             </div>
           </div>
 
           <!-- 4. Next Button (Right) -->
-          <button
-            class="nav-btn right"
-            *ngIf="!selectedTemplate()"
-            (click)="nextMeme()"
-            title="Next Meme"
-          >
+          <button class="nav-btn right" *ngIf="!selectedTemplate()" (click)="nextMeme()" title="Next Meme">
             &gt;
           </button>
         </div>
@@ -247,7 +179,7 @@
       <div class="win-title-bar">
         <span>{{
           activeTab === "trendy" ? "Trendy Memes 🔥" : "Your Templates"
-        }}</span>
+          }}</span>
         <div class="win-controls">
           <button class="win-btn small-btn" (click)="toggleMinimize('right')">
             {{ isRightMinimized ? "□" : "_" }}
@@ -258,18 +190,10 @@
       <div class="window-inner-content">
         <!-- Tab Toggle -->
         <div class="context-switch">
-          <button
-            class="win-btn"
-            [class.active]="activeTab === 'trendy'"
-            (click)="setActiveTab('trendy')"
-          >
+          <button class="win-btn" [class.active]="activeTab === 'trendy'" (click)="setActiveTab('trendy')">
             Trendy
           </button>
-          <button
-            class="win-btn"
-            [class.active]="activeTab === 'custom'"
-            (click)="setActiveTab('custom')"
-          >
+          <button class="win-btn" [class.active]="activeTab === 'custom'" (click)="setActiveTab('custom')">
             Your Templates
           </button>
         </div>
@@ -277,22 +201,13 @@
         <div class="template-actions" *ngIf="activeTab === 'custom'">
           <label class="win-btn upload-btn">
             Add Template
-            <input
-              type="file"
-              accept="image/*"
-              (change)="onTemplateUpload($event)"
-              style="display: none"
-            />
+            <input type="file" accept="image/*" (change)="onTemplateUpload($event)" style="display: none" />
           </label>
         </div>
         <div class="meme-list-container win-input-inset">
           <!-- Trendy Grid -->
           <div class="template-grid" *ngIf="activeTab === 'trendy'">
-            <div
-              *ngFor="let tmpl of trendyTemplates"
-              class="meme-item"
-              (click)="selectTemplate(tmpl.url)"
-            >
+            <div *ngFor="let tmpl of trendyTemplates" class="meme-item" (click)="selectTemplate(tmpl.url)">
               <img [src]="tmpl.url" alt="Trendy Meme" />
               <div class="stats-overlay">
                 <span>❤️ {{ tmpl.likes }}</span>
@@ -303,17 +218,10 @@
 
           <!-- Dynamic Grid -->
           <div class="template-grid" *ngIf="activeTab === 'custom'">
-            <div
-              *ngFor="let tmpl of templates()"
-              class="meme-item"
-              (click)="selectTemplate(tmpl)"
-            >
+            <div *ngFor="let tmpl of templates()" class="meme-item" (click)="selectTemplate(tmpl)">
               <img [src]="tmpl" alt="Template" />
             </div>
-            <div
-              *ngIf="templates().length === 0"
-              style="padding: 10px; text-align: center; color: gray"
-            >
+            <div *ngIf="templates().length === 0" style="padding: 10px; text-align: center; color: gray">
               No uploads yet.
             </div>
           </div>
