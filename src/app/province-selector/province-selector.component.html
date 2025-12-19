@@ -1,0 +1,44 @@
+<div class="desktop-container">
+    <div class="win-window map-window">
+        <div class="win-title-bar">
+            <span>Map.exe - Select Province</span>
+            <div class="win-controls">
+                <button class="win-btn small-btn">_</button>
+                <button class="win-btn small-btn">□</button>
+                <button class="win-btn small-btn close-btn">X</button>
+            </div>
+        </div>
+
+        <div class="window-content">
+            <div class="instruction-bar">
+                {{ instructionText }}
+            </div>
+
+            <div class="map-frame" *ngIf="!isLoading">
+                <div [innerHTML]="svgContent" class="svg-wrapper"></div>
+            </div>
+
+            <div *ngIf="isLoading" class="loader">
+                Loading Atlas...
+            </div>
+
+            <div class="status-bar">
+                <button *ngIf="selectedProvince" class="win-btn start-btn" (click)="onStartGeneration()"
+                    [disabled]="isGenerating">
+                    Start meme generation
+                </button>
+                <span *ngIf="!selectedProvince">0 Object(s) selected</span>
+            </div>
+        </div>
+    </div>
+
+    <!-- Loader Overlay -->
+    <div class="loader-overlay" *ngIf="isGenerating">
+        <div class="win-window loader-window">
+            <div class="loader-content">
+                <p>{{ selectedProvince }} specific memes loading...</p>
+                <app-windows-loader></app-windows-loader>
+            </div>
+        </div>
+    </div>
+</div>
