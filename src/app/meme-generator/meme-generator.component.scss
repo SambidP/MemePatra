@@ -198,6 +198,8 @@ $text-color: var(--win-text);
   .center-content {
     padding: 0;
     background-color: #808080;
+    display: flex;
+    flex-direction: column;
   }
 
   .image-preview-placeholder {
@@ -213,6 +215,40 @@ $text-color: var(--win-text);
       max-height: 100%;
       border: 2px solid black;
       box-shadow: 5px 5px 0px rgba(0, 0, 0, 0.5);
+    }
+  }
+
+  .recent-generations {
+    display: flex;
+    gap: 10px;
+    overflow-x: auto;
+    padding: 10px;
+    background: var(--win-gray);
+    border-top: 2px solid white;
+    white-space: nowrap;
+    min-height: 80px;
+    flex-shrink: 0;
+
+    .history-thumb {
+      height: 60px;
+      aspect-ratio: 1;
+      object-fit: cover;
+      border: 2px solid white;
+      cursor: pointer;
+
+      &:hover {
+        border-color: var(--win-blue);
+      }
+    }
+
+    &::-webkit-scrollbar {
+      height: 8px;
+      background-color: #dfdfdf;
+    }
+
+    &::-webkit-scrollbar-thumb {
+      background-color: #c0c0c0;
+      border: 1px solid #808080;
     }
   }
 }
@@ -320,7 +356,7 @@ $text-color: var(--win-text);
   display: flex;
   flex-direction: row; // Horizontal layout
   align-items: center; // Vertically center everything
-  justify-content: center; // Center the group
+  justify-content: space-evenly; // Center the group
   gap: 20px;
   padding: 10px;
   background-color: #808080;
@@ -350,9 +386,6 @@ $text-color: var(--win-text);
       background-color: #dcdcdc;
     }
 
-    &.left {
-      margin-right: auto; // Push to edges if we want spread, or just let gap handle it
-    }
   }
 
   // Meme Card (Center)

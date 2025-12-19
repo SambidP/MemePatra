@@ -78,7 +78,7 @@ export class ProvinceSelectorComponent implements OnInit {
         if (this.selectedProvince) {
             this.isGenerating = true;
             setTimeout(() => {
-                this.router.navigate(['/meme-generator', this.selectedProvince]);
+                this.router.navigate(['/generate']);
             }, 4000);
         }
     }

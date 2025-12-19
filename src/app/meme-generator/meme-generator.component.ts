@@ -28,6 +28,7 @@ export class MemeGeneratorComponent implements OnInit {
 
   // Generated Memes
   generatedMemes = signal<any[]>([]);
+  generatedMemesHistory = signal<any[]>([]);
   currentMemeIndex = signal<number>(0);
 
   // Tab State (Standard Property)
@@ -127,8 +128,15 @@ export class MemeGeneratorComponent implements OnInit {
   // Select a template for manual editing
   selectTemplate(url: string) {
     this.selectedTemplate.set(url);
-    this.generatedMemes.set([]); // Clear generated memes to avoid confusion
+    // Do NOT clear generatedGeneratedMemes to preserve history
     this.isManualEditMode.set(false); // Reset edit mode initially
+  }
+
+  // Restore a meme from history
+  restoreMeme(meme: any) {
+    this.selectedTemplate.set(null);
+    this.generatedMemes.set([meme]);
+    this.currentMemeIndex.set(0);
   }
 
   // Toggle Edit Mode
@@ -233,6 +241,9 @@ export class MemeGeneratorComponent implements OnInit {
                   console.log('Generated Memes:', genResponse);
                   if (genResponse.success && genResponse.memes) {
                     this.generatedMemes.set(genResponse.memes);
+                    // Add to history
+                    this.generatedMemesHistory.update(history => [...history, ...genResponse.memes]);
+
                     this.currentMemeIndex.set(0);
                     // Auto-refresh templates to show newly generated history
                     this.loadTemplates();

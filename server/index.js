@@ -160,24 +160,24 @@ const generateImage = async (prompt) => {
     try {
         // Using Gemini 3 Pro Image Preview as requested
         const imageModel = genAI.getGenerativeModel({ model: "gemini-3-pro-image-preview" });
-        
+
         const result = await imageModel.generateContent(prompt);
         const response = result.response;
-        
+
         // Typical structure for multimodal response. 
-        if (response.candidates && 
-            response.candidates.length > 0 && 
-            response.candidates[0].content && 
+        if (response.candidates &&
+            response.candidates.length > 0 &&
+            response.candidates[0].content &&
             response.candidates[0].content.parts &&
             response.candidates[0].content.parts.length > 0) {
-            
+
             const part = response.candidates[0].content.parts[0];
-            
+
             if (part.inlineData && part.inlineData.data) {
-                 return `data:${part.inlineData.mimeType};base64,${part.inlineData.data}`;
+                return `data:${part.inlineData.mimeType};base64,${part.inlineData.data}`;
             }
         }
-        
+
         console.warn("Unexpected Image Response Structure:", JSON.stringify(response, null, 2));
         // Fallback placeholder
         return `https://placehold.co/600x400?text=Gen+Error`;
@@ -192,7 +192,7 @@ const generateImage = async (prompt) => {
 const storage = multer.diskStorage({
     destination: (req, file, cb) => {
         const uploadDir = './uploads';
-        if (!fs.existsSync(uploadDir)){
+        if (!fs.existsSync(uploadDir)) {
             fs.mkdirSync(uploadDir);
         }
         cb(null, uploadDir);
@@ -213,7 +213,7 @@ app.get('/api/templates', (req, res) => {
     if (!fs.existsSync(templatesDir)) {
         return res.json([]);
     }
-    
+
     fs.readdir(templatesDir, (err, files) => {
         if (err) {
             console.error(err);
@@ -256,8 +256,8 @@ app.post('/api/parse-context', upload.single('file'), async (req, res) => {
             } else {
                 console.log('Unsupported file type for parsing:', ext);
             }
-        } 
-        
+        }
+
         if (!parsedText.trim()) {
             parsedText = instructions;
         }
@@ -278,20 +278,20 @@ app.post('/api/parse-context', upload.single('file'), async (req, res) => {
 app.post('/api/generate-memes', upload.single('file'), async (req, res) => {
     console.log("================================================================");
     console.log("[SERVER] Received /api/generate-memes request");
-    
+
     try {
         const { parsedNewsText, userVibe, contextLanguage } = req.body;
         console.log("[SERVER] Context Language:", contextLanguage);
-        
-        const userVibeText = userVibe || ''; 
-        
+
+        const userVibeText = userVibe || '';
+
         // Handle potential JSON object or string for parsedNewsText
         let contextTextRaw = parsedNewsText;
         console.log("[SERVER] Raw Inputs - User Vibe:", userVibeText);
         console.log("[SERVER] Raw Inputs - ParsedNewsText Type:", typeof contextTextRaw);
 
         let contextText = '';
-        
+
         if (typeof contextTextRaw === 'object') {
             console.log("[SERVER] contentTextRaw is object, stringifying...");
             contextText = JSON.stringify(contextTextRaw, null, 2);
@@ -326,8 +326,8 @@ ${userVibeText}
 
         // 2. Gemini Step (JSON Generation - Text Model)
         console.log("[SERVER] Calling Gemini Text Model (gemini-3-pro-preview)...");
-        
-        const model = genAI.getGenerativeModel({ 
+
+        const model = genAI.getGenerativeModel({
             model: "gemini-3-pro-preview",
             generationConfig: { responseMimeType: "application/json" }
         });
@@ -339,69 +339,53 @@ ${userVibeText}
 
         const geminiJson = JSON.parse(responseText);
         console.log("[SERVER] JSON Parsed Successfully.");
-        
+
         if (!geminiJson.meme_concepts || !Array.isArray(geminiJson.meme_concepts)) {
-             console.error("[SERVER] Invalid JSON Structure:", Object.keys(geminiJson));
-             throw new Error("Invalid JSON structure from Gemini");
+            console.error("[SERVER] Invalid JSON Structure:", Object.keys(geminiJson));
+            throw new Error("Invalid JSON structure from Gemini");
         }
         console.log(`[SERVER] Found ${geminiJson.meme_concepts.length} meme concepts.`);
 
         // 3. Image Generation Step (Parallel - Image Model)
         const concepts = geminiJson.meme_concepts.slice(0, 3);
         console.log("[SERVER] Starting Image Generation for top 3 concepts...");
-        
+
         const memePromises = concepts.map(async (concept, index) => {
             const prompt = concept.final_generation_string;
-            console.log(`[SERVER] Generating Image for Concept ${index+1}... Prompt:`, prompt);
-            
+            console.log(`[SERVER] Generating Image for Concept ${index + 1}... Prompt:`, prompt);
+
             if (!prompt) {
-                console.warn(`[SERVER] Concept ${index+1} missing generation string.`);
+                console.warn(`[SERVER] Concept ${index + 1} missing generation string.`);
                 return { ...concept, generated_image_url: null, error: "No prompt string" };
             }
 
             try {
                 // generateImage returns a Data URI (data:image/png;base64,...)
                 const base64DataUri = await generateImage(prompt);
-                
+
                 if (base64DataUri.startsWith('data:image')) {
                     // Extract Base64 Data
                     const matches = base64DataUri.match(/^data:([A-Za-z-+\/]+);base64,(.+)$/);
-                    
+
                     if (matches && matches.length === 3) {
-                        const imageBuffer = Buffer.from(matches[2], 'base64');
-                        const timestamp = Date.now();
-                        const filename = `gen-${timestamp}-${index}.png`;
-                        const templatesDir = './uploads/templates';
-                        
-                        // Ensure directory exists (it should, but safety first)
-                        if (!fs.existsSync(templatesDir)){
-                            fs.mkdirSync(templatesDir, { recursive: true });
-                        }
+                        // Return the Base64 Data URI directly
+                        console.log(`[SERVER] Returned Base64 image for Concept ${index + 1}`);
 
-                        const filePath = path.join(templatesDir, filename);
-                        
-                        // Save to disk
-                        fs.writeFileSync(filePath, imageBuffer);
-                        console.log(`[SERVER] Auto-saved generated meme to: ${filePath}`);
-
-                        // Return the static URL
-                        const publicUrl = `http://localhost:${PORT}/uploads/templates/${filename}`;
-                        
                         return {
                             ...concept,
-                            generated_image_url: publicUrl // Now it's a file URL, not Base64
+                            generated_image_url: base64DataUri
                         };
                     }
                 }
 
                 // Fallback (if no base64 match or other issue)
-                console.log(`[SERVER] Image generated for Concept ${index+1}. (Returned specific URL or error)`);
+                console.log(`[SERVER] Image generated for Concept ${index + 1}. (Returned specific URL or error)`);
                 return {
                     ...concept,
                     generated_image_url: base64DataUri
                 };
             } catch (err) {
-                console.error(`[SERVER] Image gen failed for Concept ${index+1}:`, err);
+                console.error(`[SERVER] Image gen failed for Concept ${index + 1}:`, err);
                 return { ...concept, generated_image_url: null, error: "Image generation failed" };
             }
         });
