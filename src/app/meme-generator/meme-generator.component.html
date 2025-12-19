@@ -171,6 +171,13 @@
             &gt;
           </button>
         </div>
+
+        <!-- Recent Generations History -->
+        <div class="recent-generations" *ngIf="generatedMemesHistory().length > 0">
+          <img *ngFor="let meme of generatedMemesHistory()"
+            [src]="meme.generated_image_url || 'https://placehold.co/60x60'" class="history-thumb"
+            (click)="restoreMeme(meme)" title="Restore this meme">
+        </div>
       </div>
     </div>
 
