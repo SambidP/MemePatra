@@ -5,7 +5,7 @@
 
   <div class="main-body">
     <!-- Left Column: Edit Your Meme -->
-    <div class="win-window panel left-panel">
+    <div class="win-window panel left-panel" [class.minimized]="isLeftMinimized">
       <div class="win-title-bar">
         <span>Meme Generator</span>
         <div class="win-controls">
@@ -80,7 +80,7 @@
     </div>
 
     <!-- Center Column: Preview -->
-    <div class="win-window panel center-panel">
+    <div class="win-window panel center-panel" [class.minimized]="isCenterMinimized">
       <div class="win-title-bar">
         <span>Meme Preview</span>
         <div class="win-controls">
@@ -243,13 +243,15 @@
     </div>
 
     <!-- Right Column: Meme Templates -->
-    <div class="win-window panel right-panel">
+    <div class="win-window panel right-panel" [class.minimized]="isRightMinimized">
       <div class="win-title-bar">
         <span>{{
           activeTab === "trendy" ? "Trendy Memes 🔥" : "Your Templates"
         }}</span>
         <div class="win-controls">
-          <button class="win-btn small-btn">-</button>
+          <button class="win-btn small-btn" (click)="toggleMinimize('right')">
+            {{ isRightMinimized ? "□" : "_" }}
+          </button>
         </div>
       </div>
 
